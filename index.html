@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PFP Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    img {
+      max-width: 300px;
+      margin-top: 20px;
+      display: none;
+    }
+    input {
+      width: 70px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>PFP Viewer</h1>
+
+<p>
+  Enter image number:
+  <input type="number" id="numberInput" min="1">
+  <button onclick="showImage()">Show</button>
+</p>
+
+<p id="info"></p>
+
+<img id="image">
+
+<script>
+const OWNER = "TheHacker41";
+const REPO = "Img-Uploader-Test";
+const FOLDER = "pfps";
+
+let images = [];
+
+async function loadImages() {
+  const res = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FOLDER}`
+  );
+  const files = await res.json();
+
+  images = files
+    .filter(f =>
+      f.type === "file" &&
+      f.name.match(/^\d+\.(png|jpg|jpeg|gif|webp)$/i)
+    )
+    .map(f => {
+      const number = parseInt(f.name.match(/^(\d+)/)[1], 10);
+      return {
+        number,
+        name: f.name,
+        url: f.download_url
+      };
+    })
+    .sort((a, b) => a.number - b.number);
+
+  document.getElementById("info").textContent =
+    `Loaded ${images.length} images.`;
+}
+
+function showImage() {
+  const num = parseInt(document.getElementById("numberInput").value, 10);
+
+  if (!num || num < 1 || num > images.length) {
+    alert("Invalid number");
+    return;
+  }
+
+  const img = images[num - 1];
+  const imageEl = document.getElementById("image");
+
+  imageEl.src = img.url;
+  imageEl.style.display = "block";
+
+  document.getElementById("info").textContent =
+    `#${num} — ${img.name}`;
+}
+
+loadImages();
+</script>
+
+</body>
+</html>
